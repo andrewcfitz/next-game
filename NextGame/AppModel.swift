@@ -45,7 +45,6 @@ final class AppModel {
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
-        lastAttempt = .now
 
         var logosChanged = false
         if let fresh = await refresher.refreshTeamsIfStale(maxAge: RefreshPolicy.teamsMaxAge) {
@@ -58,7 +57,9 @@ final class AppModel {
         schedule = store.schedule
         now = .now
         switch outcome {
-        case .changed, .unchanged: lastError = nil
+        case .changed, .unchanged:
+            lastError = nil
+            lastAttempt = .now
         case let .failed(message): lastError = message
         }
         if outcome == .changed || logosChanged {
