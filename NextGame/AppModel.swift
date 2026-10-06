@@ -31,8 +31,12 @@ final class AppModel {
     }
 
     var statusLine: String {
-        if let lastError { return lastError }
-        guard let fetchedAt = schedule?.fetchedAt else { return "Not updated yet" }
+        let fetchedAt = schedule?.fetchedAt
+        if let lastError {
+            guard let fetchedAt else { return lastError }
+            return "\(lastError) · updated \(fetchedAt.formatted(.relative(presentation: .named)))"
+        }
+        guard let fetchedAt else { return "Not updated yet" }
         return "Updated \(fetchedAt.formatted(.relative(presentation: .named)))"
     }
 
