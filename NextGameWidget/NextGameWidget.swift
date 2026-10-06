@@ -45,11 +45,22 @@ struct Provider: AppIntentTimelineProvider {
         let now = Date.now
         let team = configuration.team?.id
         let games = schedule?.games ?? []
-        let dates = team.map { GameResolver.timelineDates(team: $0, games: games, now: now) } ?? [now]
-        let wait = RefreshPolicy.interval(for: Set([team].compactMap { $0 }), games: games, now: now)
-        // WidgetKit throttles reloads below about 15 minutes anyway.
-        return Timeline(entries: dates.map { entry(team: team, schedule: schedule, at: $0) },
-                        policy: .after(now + max(wait, 15 * 60)))
+        var dates = team.map { GameResolver.timelineDates(team: $0, games: games, now: now) } ?? [now]
+        // "Tomorrow" has to become "Today" at midnight even when no game boundary falls there.
+        let cal = Calendar.current
+        if let midnight = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)), !dates.contains(midnight) {
+            dates.append(midnight)
+            dates.sort()
+        }
+        let reload: TimelineReloadPolicy
+        if schedule == nil {
+            reload = .after(now + 15 * 60)
+        } else {
+            let wait = RefreshPolicy.interval(for: Set([team].compactMap { $0 }), games: games, now: now)
+            // WidgetKit throttles reloads below about 15 minutes anyway.
+            reload = .after(now + max(wait, 15 * 60))
+        }
+        return Timeline(entries: dates.map { entry(team: team, schedule: schedule, at: $0) }, policy: reload)
     }
 
     /// The app normally keeps the snapshot fresh; fetch here only if it hasn't run in a while.
