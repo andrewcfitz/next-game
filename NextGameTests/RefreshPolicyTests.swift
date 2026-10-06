@@ -46,4 +46,30 @@ struct RefreshPolicyTests {
         #expect(!RefreshPolicy.isDue(lastAttempt: lastAttempt, teams: [], games: [game()], now: now))
         #expect(RefreshPolicy.isDue(lastAttempt: lastAttempt, teams: ["KC"], games: [game()], now: now))
     }
+
+    @Test func noMidpointFetchBeforeTheWindow() {
+        let window = kickoff - RefreshPolicy.leadTime
+        #expect(!RefreshPolicy.isDue(lastAttempt: window - 3 * hour, teams: ["KC"], games: [game()], now: window - 1.5 * hour))
+        #expect(RefreshPolicy.isDue(lastAttempt: window - 3 * hour, teams: ["KC"], games: [game()], now: window))
+    }
+
+    func other(score: Bool) -> Game {
+        Game(id: "o", season: 2026, week: 5, gameType: "REG", kickoff: kickoff, awayTeam: "DEN", homeTeam: "LV",
+             awayScore: score ? 3 : nil, homeScore: score ? 0 : nil, stadium: nil, spread: nil)
+    }
+
+    @Test func configuredTeamChangeIsRelevant() {
+        #expect(RefreshPolicy.relevantGamesChanged(old: [game()], new: [game(score: true)], teams: ["KC"]))
+    }
+
+    @Test func otherTeamChangeIsNotRelevant() {
+        #expect(!RefreshPolicy.relevantGamesChanged(old: [game(), other(score: false)], new: [game(), other(score: true)], teams: ["KC"]))
+    }
+
+    @Test func missingOrNewSeasonIsRelevant() {
+        var next = game()
+        next.season = 2027
+        #expect(RefreshPolicy.relevantGamesChanged(old: nil, new: [game()], teams: ["KC"]))
+        #expect(RefreshPolicy.relevantGamesChanged(old: [game()], new: [next], teams: ["KC"]))
+    }
 }

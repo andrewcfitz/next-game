@@ -9,7 +9,7 @@ enum RefreshPolicy {
     static let teamsMaxAge: TimeInterval = 7 * 86400
 
     static func interval(for teams: Set<String>, games: [Game], now: Date) -> TimeInterval {
-        let relevant = games.filter { teams.contains($0.awayTeam) || teams.contains($0.homeTeam) }
+        let relevant = relevantGames(teams, in: games)
         if relevant.contains(where: { isActive($0, at: now) }) { return gameDay }
         guard let window = relevant.map({ $0.kickoff - leadTime }).filter({ $0 > now }).min() else { return normal }
         return max(gameDay, min(normal, window.timeIntervalSince(now)))
@@ -17,7 +17,20 @@ enum RefreshPolicy {
 
     static func isDue(lastAttempt: Date?, teams: Set<String>, games: [Game], now: Date) -> Bool {
         guard let lastAttempt else { return true }
-        return now >= lastAttempt + interval(for: teams, games: games, now: now)
+        let relevant = relevantGames(teams, in: games)
+        if relevant.contains(where: { isActive($0, at: now) }) { return now >= lastAttempt + gameDay }
+        let nextWindow = relevant.map { $0.kickoff - leadTime }.filter { $0 > lastAttempt }.min()
+        return now >= min(lastAttempt + normal, nextWindow ?? .distantFuture)
+    }
+
+    /// True when a reload could change what a widget for `teams` shows. Other teams' score updates don't count.
+    static func relevantGamesChanged(old: [Game]?, new: [Game]?, teams: Set<String>) -> Bool {
+        guard let old, let new, old.first?.season == new.first?.season else { return true }
+        return relevantGames(teams, in: old) != relevantGames(teams, in: new)
+    }
+
+    private static func relevantGames(_ teams: Set<String>, in games: [Game]) -> [Game] {
+        games.filter { teams.contains($0.awayTeam) || teams.contains($0.homeTeam) }
     }
 
     private static func isActive(_ game: Game, at now: Date) -> Bool {
