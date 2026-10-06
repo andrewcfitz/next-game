@@ -10,7 +10,7 @@ enum ScheduleParser {
         guard let text = String(data: data, encoding: .utf8) else { throw ParseError.notUTF8 }
         // The file covers every season since 1999; filter lines by the game_id prefix before
         // the full CSV parse to keep memory low in the widget extension.
-        let lines = text.split(separator: "\n")
+        let lines = text.split(whereSeparator: \.isNewline)
         guard let header = lines.first else { throw ParseError.noRows }
         guard let season = lines.dropFirst().compactMap({ Int($0.prefix(4)) }).max() else { throw ParseError.noRows }
         let prefix = "\(season)_"
