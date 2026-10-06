@@ -8,7 +8,7 @@ struct NextGameWidgetView: View {
     var body: some View {
         if let team = entry.team {
             if let state = entry.state {
-                if family == .systemMedium {
+                if family == .systemMedium, !entry.later.isEmpty {
                     HStack(alignment: .top, spacing: 12) {
                         StateView(team: team, state: state, entry: entry)
                         Divider()
