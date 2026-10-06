@@ -113,4 +113,13 @@ struct GameResolverTests {
         #expect(dates == dates.sorted())
         #expect(dates.count <= 8)
     }
+
+    @Test func timelineIncludesStaleCutoffForUnscoredLiveGame() {
+        let w2 = game(2, "KC", "BUF", dayOffset: 7)
+        let now = w2.kickoff + 5 * Self.hour
+        let dates = GameResolver.timelineDates(team: "KC", games: [w2], now: now)
+        #expect(dates.contains(w2.kickoff + Game.staleAfter))
+        #expect(!dates.contains(w2.kickoff))
+        #expect(!dates.contains(w2.expectedEnd))
+    }
 }

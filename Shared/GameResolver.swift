@@ -30,7 +30,7 @@ enum GameResolver {
     static func timelineDates(team: String, games: [Game], now: Date) -> [Date] {
         var dates: Set<Date> = []
         for game in teamGames(team, games) {
-            for date in [game.kickoff, game.expectedEnd] where date > now {
+            for date in [game.kickoff, game.expectedEnd, game.kickoff + Game.staleAfter] where date > now {
                 dates.insert(date)
             }
         }
