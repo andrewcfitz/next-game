@@ -38,7 +38,7 @@ enum GameFormatting {
         if seconds <= 0 { return "now" }
         if seconds < 3600 { return "in \(max(1, Int(seconds / 60)))m" }
         let days = dayDistance(from: now, to: date, calendar: calendar)
-        if days == 0 { return "in \(Int(seconds / 3600))h" }
+        if days == 0 || seconds < 12 * 3600 { return "in \(Int(seconds / 3600))h" }
         return "in \(days)d"
     }
 

@@ -57,4 +57,10 @@ struct GameFormattingTests {
         #expect(text("2026-09-12T15:00:00Z") == "in 2d")
         #expect(text("2026-09-15T01:00:00Z") == "now")
     }
+
+    @Test func countdownAcrossMidnightUsesHours() {
+        let kickoff = iso("2026-09-15T07:00:00Z") // 1:00 AM Denver
+        let text = GameFormatting.countdown(to: kickoff, now: iso("2026-09-15T05:00:00Z"), calendar: calendar)
+        #expect(text == "in 2h")
+    }
 }
