@@ -60,6 +60,9 @@ struct StateView: View {
                 Text(GameFormatting.liveScore(game, for: team))
                     .font(.title3.bold())
                     .minimumScaleFactor(0.7)
+                if !game.hasScore {
+                    Text(GameFormatting.kickoff(game.kickoff, now: entry.date)).font(.caption).foregroundStyle(.secondary)
+                }
                 Spacer(minLength: 0)
             case let .offseason(last):
                 HStack {
