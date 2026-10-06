@@ -53,6 +53,7 @@ final class AppModel {
             logosChanged = await LogoCache.shared.update(teams)
         }
 
+        let previous = schedule?.games
         let outcome = await refresher.refreshSchedule()
         schedule = store.schedule
         now = .now
@@ -62,7 +63,9 @@ final class AppModel {
             lastAttempt = .now
         case let .failed(message): lastError = message
         }
-        if outcome == .changed || logosChanged {
+        // .changed fires for any game in the season; reloading on each would burn the widget budget.
+        if logosChanged || (outcome == .changed
+            && RefreshPolicy.relevantGamesChanged(old: previous, new: schedule?.games, teams: Set(configuredTeams))) {
             WidgetCenter.shared.reloadAllTimelines()
         }
     }
