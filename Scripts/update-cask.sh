@@ -14,7 +14,7 @@ cask "next-game" do
 
   url "https://github.com/andrewcfitz/next-game/releases/download/v#{version}/NextGame-#{version}.zip"
   name "Next Game"
-  desc "Menu bar app and widget counting down to your next campground stay"
+  desc "Menu bar app and widget showing your NFL team's next game and last score"
   homepage "https://github.com/andrewcfitz/next-game"
 
   depends_on macos: ">= :sequoia"
