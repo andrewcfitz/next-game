@@ -75,6 +75,7 @@ final class AppModel {
         loop = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
+                now = .now
                 configuredTeams = await Self.loadConfiguredTeams()
                 if RefreshPolicy.isDue(lastAttempt: lastAttempt, teams: Set(configuredTeams),
                                        games: schedule?.games ?? [], now: .now) {
