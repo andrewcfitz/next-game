@@ -80,7 +80,7 @@ macOS keeps `biz.fitz.NextGame`, `biz.fitz.NextGame.Widget`, and `$(TeamIdentifi
 
 - `ci.yml` (push to main, PRs), `runs-on: macos-15` or newer hosted image with the needed Xcode:
   - generate the project, run `fastlane mac test`, build `NextGameiOS` for the iOS Simulator unsigned.
-- `release.yml` (manual only) with a `lane` input: `mac_release` (the existing Developer ID, notarize, cask flow) or `ios_beta`.
+- `testflight.yml` (manual only) runs `fastlane ios beta`. The existing `release.yml` (Developer ID, notarize, cask) is unchanged; keeping them separate leaves the Mac release untouched.
 - Secrets (same names as next-up and Earful): `MATCH_PASSWORD`, `MATCH_DEPLOY_KEY`, `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY` (base64 .p8), `APPLE_TEAM_ID`. Adding them to the repo is a manual step for Andrew.
 
 ## Shared code changes
@@ -88,12 +88,12 @@ macOS keeps `biz.fitz.NextGame`, `biz.fitz.NextGame.Widget`, and `$(TeamIdentifi
 - **`AppGroup.id`**: on iOS, read from the `NextGameAppGroup` Info.plist key (set from the environment xcconfig) because `SecTaskCopyValueForEntitlement` is macOS-only. macOS keeps reading the entitlement.
 - **`LogoCache.image(for:)`** returns `CGImage?` instead of `NSImage?`; views render `Image(decorative:scale:)`. No AppKit or UIKit import in `Shared/`.
 - **Widget staleness** (`RefreshPolicy`):
-  - New `static func widgetShouldFetch(snapshotAge: TimeInterval?, team: String?, games: [Game], now: Date) -> Bool`.
+  - New `static func widgetShouldFetch(snapshotAge: TimeInterval?, team: String?, games: [Game], now: Date, appIsTheFetcher: Bool = appIsTheFetcher) -> Bool`; `appIsTheFetcher` is true on macOS and false on iOS, and is a parameter so both rules are unit tested on macOS.
   - iOS: fetch when there is no snapshot, or when its age is at least `max(15 min, interval(for: [team], games:, now:))`. That is 6 hours normally and 15 minutes around the team's game.
   - macOS: fetch when there is no snapshot or it is older than `widgetStaleAfter` (12 hours), as today.
   - The widget's timeline reload policy stays `.after(now + max(interval, 15 min))`.
 - **Lock Screen formatters** in `GameFormatting`, pure and unit tested:
-  - `inline(_ state: TeamState, team: String, now: Date) -> String`, e.g. "KC @ BUF Sun 1PM", "KC 14, BUF 7", "KC · Offseason".
+  - `inline(_ state: TeamState, team: String, now: Date) -> String`, e.g. "KC @ BUF · Sun 1:00 PM", "KC 14, BUF 7", "KC · Offseason".
   - `rectangularLines(_ state: TeamState, team: String, now: Date) -> [String]` (up to three), e.g. ["@ BUF · Sun 1:00 PM", "in 3d", "W 31-10 vs DEN"].
 
 ## Widget
