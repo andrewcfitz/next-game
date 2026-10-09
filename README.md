@@ -26,7 +26,7 @@ Run `Scripts/generate.sh` and open `NextGame.xcodeproj`. Two schemes: **NextGame
 | App Group | `group.biz.fitz.NextGame.dev` | `group.biz.fitz.NextGame` |
 | Name | Next Game Dev | Next Game |
 
-The dev build installs beside the TestFlight one. CI builds the iOS app for the simulator on every push; the TestFlight workflow is run by hand. One-time Apple and secrets setup is in [docs/ios-setup.md](docs/ios-setup.md).
+The dev build installs beside the TestFlight one. CI builds the iOS app for the simulator on every pull request and push to main; the TestFlight workflow is run by hand. One-time Apple and secrets setup is in [docs/ios-setup.md](docs/ios-setup.md).
 
 ## Layout
 
