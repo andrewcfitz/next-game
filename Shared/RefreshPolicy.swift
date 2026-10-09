@@ -7,6 +7,23 @@ enum RefreshPolicy {
     static let leadTime: TimeInterval = 4 * 3600
     static let widgetStaleAfter: TimeInterval = 12 * 3600
     static let teamsMaxAge: TimeInterval = 7 * 86400
+    static let widgetMinimumInterval: TimeInterval = 15 * 60
+
+    /// On macOS the menu bar app is always running and keeps the cache fresh; on iOS the app is usually
+    /// suspended, so the widget is the main fetcher.
+    #if os(macOS)
+    static let appIsTheFetcher = true
+    #else
+    static let appIsTheFetcher = false
+    #endif
+
+    static func widgetShouldFetch(snapshotAge: TimeInterval?, team: String?, games: [Game], now: Date,
+                                  appIsTheFetcher: Bool = appIsTheFetcher) -> Bool {
+        guard let snapshotAge else { return true }
+        if appIsTheFetcher { return snapshotAge >= widgetStaleAfter }
+        let teams = Set([team].compactMap { $0 })
+        return snapshotAge >= max(widgetMinimumInterval, interval(for: teams, games: games, now: now))
+    }
 
     static func interval(for teams: Set<String>, games: [Game], now: Date) -> TimeInterval {
         let relevant = relevantGames(teams, in: games)
