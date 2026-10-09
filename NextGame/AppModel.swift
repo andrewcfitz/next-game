@@ -1,7 +1,6 @@
 import AppKit
 import Observation
 import ServiceManagement
-import WidgetKit
 
 @MainActor
 @Observable
