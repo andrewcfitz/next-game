@@ -44,9 +44,12 @@ enum GameFormatting {
 
     static func statusLine(fetchedAt: Date?, lastError: String?, now: Date, locale: Locale = .current) -> String {
         let age = fetchedAt.map { date -> String in
+            // Under a minute (or clock skew into the future) reads as "now", not "2 seconds ago".
+            if date.timeIntervalSince(now) > -60 { return "now" }
             let formatter = RelativeDateTimeFormatter()
             formatter.locale = locale
             formatter.unitsStyle = .full
+            formatter.dateTimeStyle = .named
             return formatter.localizedString(for: date, relativeTo: now)
         }
         switch (lastError, age) {

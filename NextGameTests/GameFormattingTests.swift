@@ -72,4 +72,11 @@ struct GameFormattingTests {
         #expect(GameFormatting.statusLine(fetchedAt: nil, lastError: "HTTP 503", now: now, locale: locale) == "HTTP 503")
         #expect(GameFormatting.statusLine(fetchedAt: fetched, lastError: "HTTP 503", now: now, locale: locale) == "HTTP 503 · updated 4 minutes ago")
     }
+
+    @Test func statusLineNamedRelativeTimes() {
+        let now = iso("2026-10-08T18:00:00Z")
+        #expect(GameFormatting.statusLine(fetchedAt: now - 2, lastError: nil, now: now, locale: locale) == "Updated now")
+        #expect(GameFormatting.statusLine(fetchedAt: now + 1, lastError: nil, now: now, locale: locale) == "Updated now")
+        #expect(GameFormatting.statusLine(fetchedAt: now - 26 * 3600, lastError: nil, now: now, locale: locale).contains("yesterday"))
+    }
 }
