@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
@@ -19,8 +18,9 @@ struct LogoCache: Sendable {
         directory.appending(path: "\(abbr).png")
     }
 
-    func image(for abbr: String) -> NSImage? {
-        NSImage(contentsOf: fileURL(for: abbr))
+    func image(for abbr: String) -> CGImage? {
+        guard let source = CGImageSourceCreateWithURL(fileURL(for: abbr) as CFURL, nil) else { return nil }
+        return CGImageSourceCreateImageAtIndex(source, 0, nil)
     }
 
     @discardableResult

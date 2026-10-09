@@ -117,7 +117,7 @@ struct LogoView: View {
 
     var body: some View {
         if let image = LogoCache.shared.image(for: abbr) {
-            Image(nsImage: image)
+            Image(decorative: image, scale: 1)
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
