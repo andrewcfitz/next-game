@@ -22,8 +22,9 @@ struct ModelsTests {
     @Test func finalNeedsBothScoresAndTheExpectedEnd() {
         let scored = game(away: 10, home: 31)
         #expect(scored.expectedEnd == kickoff + 3.5 * 3600)
-        #expect(!scored.isFinal(at: kickoff + 3600))
-        #expect(scored.isFinal(at: scored.expectedEnd))
+        // nflverse posts scores only once a game ends, so a score after kickoff means final.
+        #expect(!scored.isFinal(at: kickoff - 60))
+        #expect(scored.isFinal(at: kickoff + 3600))
         #expect(!game(away: 10).isFinal(at: kickoff + 5 * 3600))
         #expect(!game().hasScore)
     }

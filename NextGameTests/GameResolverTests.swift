@@ -32,9 +32,11 @@ struct GameResolverTests {
         #expect(GameResolver.resolve(team: "KC", games: [w1, w2], now: w2.kickoff) == .inProgress(w2))
     }
 
-    @Test func liveScoresBeforeExpectedEndStayLive() {
-        let w2 = game(2, "KC", "BUF", dayOffset: 7, score: (14, 7))
-        #expect(GameResolver.resolve(team: "KC", games: [w2], now: w2.kickoff + 2 * Self.hour) == .inProgress(w2))
+    @Test func postedScoreIsFinalBeforeTheExpectedEnd() {
+        let w2 = game(2, "KC", "BUF", dayOffset: 7, score: (24, 16))
+        let w3 = game(3, "NYJ", "KC", dayOffset: 14)
+        #expect(GameResolver.resolve(team: "KC", games: [w2, w3], now: w2.kickoff + 3 * Self.hour) ==
+                .upcoming(next: w3, last: w2, isBye: false))
     }
 
     @Test func pastExpectedEndWithoutScoreIsStillLive() {

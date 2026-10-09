@@ -38,8 +38,8 @@ struct Game: Codable, Hashable, Sendable, Identifiable {
     func opponent(of team: String) -> String { homeTeam == team ? awayTeam : homeTeam }
     func score(of team: String) -> Int? { homeTeam == team ? homeScore : awayScore }
 
-    /// Scores can appear before the game ends if nflverse posts live scores, so also wait out the window.
-    func isFinal(at now: Date) -> Bool { hasScore && now >= expectedEnd }
+    /// nflverse posts scores only once a game ends (checked on 2026-10-08), so a score after kickoff means final.
+    func isFinal(at now: Date) -> Bool { hasScore && now >= kickoff }
 }
 
 enum TeamState: Equatable, Sendable {
