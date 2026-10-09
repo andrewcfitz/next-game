@@ -2,7 +2,7 @@
 
 One-time steps to get Next Game onto your phone through TestFlight. Run them in order from the repo root. Nothing here is automated, because each step touches the Apple Developer account or GitHub secrets.
 
-Prerequisites: `mise install` and `bundle install`, an Apple ID on team `8353VT99LA`, and an App Store Connect API key (Users and Access > Integrations > App Store Connect API) with the App Manager role. Keep the downloaded `.p8` somewhere safe (1Password).
+Prerequisites: `mise install` and `bundle install`, an Apple ID on team `8353VT99LA`, and an App Store Connect API key (Users and Access > Integrations > App Store Connect API) with the Admin role, or App Manager with access to Certificates, Identifiers & Profiles. `fastlane ios certificates` creates certificates and profiles through the API, which App Manager alone cannot do. Keep the downloaded `.p8` somewhere safe (1Password).
 
 ## 1. Add the repo secrets
 
@@ -33,6 +33,8 @@ Creates the prod (`biz.fitz.NextGame`) and dev (`biz.fitz.NextGame.dev`) App IDs
 ```sh
 FASTLANE_USER=<apple id> bundle exec fastlane ios bootstrap
 ```
+
+Bootstrap sets the App Group list on the shared `biz.fitz.NextGame` and `biz.fitz.NextGame.Widget` App IDs to the iOS group. The Mac app's team-prefixed group is checked against the signature, so this should be harmless. If Mac Debug signing complains afterwards, let Xcode re-register the group (automatic signing) and rebuild.
 
 ## 3. Create the App Store Connect record
 
