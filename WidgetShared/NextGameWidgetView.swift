@@ -6,6 +6,19 @@ struct NextGameWidgetView: View {
     @Environment(\.widgetFamily) private var family
 
     var body: some View {
+        #if os(iOS)
+        switch family {
+        case .accessoryInline, .accessoryRectangular:
+            AccessoryView(entry: entry, family: family)
+        default:
+            systemBody
+        }
+        #else
+        systemBody
+        #endif
+    }
+
+    @ViewBuilder private var systemBody: some View {
         if let team = entry.team {
             if let state = entry.state {
                 if family == .systemMedium, !entry.later.isEmpty {
@@ -33,6 +46,34 @@ struct NextGameWidgetView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
+#if os(iOS)
+struct AccessoryView: View {
+    var entry: Entry
+    var family: WidgetFamily
+
+    var body: some View {
+        if let team = entry.team, let state = entry.state {
+            if family == .accessoryInline {
+                Text(GameFormatting.inline(state, team: team, now: entry.date))
+            } else {
+                let lines = GameFormatting.rectangularLines(state, team: team, now: entry.date)
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(lines.indices, id: \.self) { index in
+                        Text(lines[index])
+                            .font(index == 0 ? .headline : .caption)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } else {
+            Text(entry.team == nil ? "Pick a team" : "Next Game")
+        }
+    }
+}
+#endif
 
 struct StateView: View {
     var team: String

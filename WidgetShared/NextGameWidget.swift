@@ -1,15 +1,14 @@
 import SwiftUI
 import WidgetKit
 
-@main
-struct NextGameWidgetBundle: WidgetBundle {
-    var body: some Widget {
-        NextGameWidget()
-    }
-}
-
 struct NextGameWidget: Widget {
     let kind = "NextGameWidget"
+
+    #if os(iOS)
+    static let families: [WidgetFamily] = [.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline]
+    #else
+    static let families: [WidgetFamily] = [.systemSmall, .systemMedium]
+    #endif
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: SelectTeamIntent.self, provider: Provider()) { entry in
@@ -18,7 +17,7 @@ struct NextGameWidget: Widget {
         }
         .configurationDisplayName("Next Game")
         .description("Your team's next game and last score.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies(Self.families)
     }
 }
 
@@ -41,7 +40,7 @@ struct Provider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: SelectTeamIntent, in context: Context) async -> Timeline<Entry> {
-        let schedule = await loadSchedule()
+        let schedule = await loadSchedule(team: configuration.team?.id)
         let now = Date.now
         let team = configuration.team?.id
         let games = schedule?.games ?? []
@@ -63,10 +62,12 @@ struct Provider: AppIntentTimelineProvider {
         return Timeline(entries: dates.map { entry(team: team, schedule: schedule, at: $0) }, policy: reload)
     }
 
-    /// The app normally keeps the snapshot fresh; fetch here only if it hasn't run in a while.
-    private func loadSchedule() async -> ScheduleSnapshot? {
+    /// macOS: the app keeps the cache fresh. iOS: the widget is the main fetcher. RefreshPolicy decides which.
+    private func loadSchedule(team: String?) async -> ScheduleSnapshot? {
         let store = SnapshotStore.shared
-        if let cached = store.schedule, Date.now.timeIntervalSince(cached.fetchedAt) < RefreshPolicy.widgetStaleAfter {
+        let cached = store.schedule
+        let age = cached.map { Date.now.timeIntervalSince($0.fetchedAt) }
+        guard RefreshPolicy.widgetShouldFetch(snapshotAge: age, team: team, games: cached?.games ?? [], now: .now) else {
             return cached
         }
         _ = await ScheduleRefresher().refreshSchedule()
