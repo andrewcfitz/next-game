@@ -61,7 +61,7 @@ enum GameFormatting {
                        calendar: Calendar = .current, locale: Locale = .current) -> String {
         switch state {
         case let .upcoming(next, _, _):
-            return "\(team) \(matchup(next, for: team)) · \(kickoff(next.kickoff, now: now, calendar: calendar, locale: locale))"
+            return "\(team) \(matchup(next, for: team)) · \(compactKickoff(next.kickoff, now: now, calendar: calendar, locale: locale))"
         case let .inProgress(game):
             return game.hasScore ? liveScore(game, for: team) : "\(team) \(matchup(game, for: team)) · In progress"
         case .offseason:
@@ -73,16 +73,25 @@ enum GameFormatting {
                                  calendar: Calendar = .current, locale: Locale = .current) -> [String] {
         switch state {
         case let .upcoming(next, last, isBye):
-            let when = kickoff(next.kickoff, now: now, calendar: calendar, locale: locale)
+            let when = compactKickoff(next.kickoff, now: now, calendar: calendar, locale: locale)
             let untilKickoff = countdown(to: next.kickoff, now: now, calendar: calendar) + (isBye ? " · bye week" : "")
             return ["\(matchup(next, for: team)) · \(when)", untilKickoff] + [last.map { result($0, for: team) }].compactMap { $0 }
         case let .inProgress(game):
             let header = "\(team) \(matchup(game, for: team))"
             if game.hasScore { return [header, liveScore(game, for: team)] }
-            return [header, "In progress", kickoff(game.kickoff, now: now, calendar: calendar, locale: locale)]
+            return [header, "In progress", compactKickoff(game.kickoff, now: now, calendar: calendar, locale: locale)]
         case let .offseason(last):
             return [team, "Offseason"] + [last.map { result($0, for: team) }].compactMap { $0 }
         }
+    }
+
+    // "Tomorrow" plus a two-digit hour overflows 24 characters on the Lock Screen.
+    private static func compactKickoff(_ date: Date, now: Date, calendar: Calendar, locale: Locale) -> String {
+        guard dayDistance(from: now, to: date, calendar: calendar) == 1 else {
+            return kickoff(date, now: now, calendar: calendar, locale: locale)
+        }
+        let style = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
+        return "\(date.formatted(style.weekday(.abbreviated))) \(date.formatted(style.hour().minute()))"
     }
 
     private static func dayDistance(from now: Date, to date: Date, calendar: Calendar) -> Int {

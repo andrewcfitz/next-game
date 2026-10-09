@@ -63,4 +63,24 @@ struct LockScreenFormattingTests {
             }
         }
     }
+
+    @Test func tomorrowIsAbbreviatedToTheWeekday() {
+        var pacific = calendar
+        pacific.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let saturday = try! Date("2026-10-10T20:00:00Z", strategy: .iso8601) // Saturday 1 PM PT
+        let morning = game("LAC", "KC", kickoff: "2026-10-11T17:00:00Z") // Sunday 10 AM PT
+        let noon = game("LAC", "KC", kickoff: "2026-10-11T19:00:00Z") // Sunday 12 PM PT
+        func lines(_ g: Game) -> [String] {
+            GameFormatting.rectangularLines(.upcoming(next: g, last: nil, isBye: false), team: "KC", now: saturday, calendar: pacific, locale: locale).map(plain)
+        }
+        #expect(lines(morning)[0] == "vs LAC · Sun 10:00 AM")
+        #expect(lines(noon)[0] == "vs LAC · Sun 12:00 PM")
+        for g in [morning, noon] {
+            let text = plain(GameFormatting.inline(.upcoming(next: g, last: nil, isBye: false), team: "JAX", now: saturday, calendar: pacific, locale: locale))
+            #expect(text.count <= 26, "\(text)")
+            #expect(lines(g).allSatisfy { $0.count <= 24 })
+        }
+        let live = GameFormatting.rectangularLines(.inProgress(game("LAC", "KC", kickoff: "2026-10-11T19:00:00Z")), team: "KC", now: saturday, calendar: pacific, locale: locale)
+        #expect(live.last.map(plain) == "Sun 12:00 PM")
+    }
 }
