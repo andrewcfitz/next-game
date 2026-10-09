@@ -162,10 +162,14 @@ platform :ios do
       group = xcconfig_value(env, "NEXTGAME_APP_GROUP")
       name = xcconfig_value(env, "NEXTGAME_DISPLAY_NAME")
       UI.header("#{env}: #{ios_ids(env).join(', ')}")
-      sh("fastlane produce group #{creds} -g #{group} -n \"#{name} group\"")
+      # The in-process produce calls go first: they are the only ones that can prompt for the Apple ID
+      # password and 2FA code. The `sh` subprocesses below get no terminal and reuse the cached login.
       ios_ids(env).each do |bundle_id|
         produce(app_identifier: bundle_id, app_name: bundle_id.end_with?(".Widget") ? "#{name} Widget" : name,
                 username: ios_apple_id, team_id: team, skip_itc: true, sku: bundle_id, language: "en-US", platform: "ios")
+      end
+      sh("fastlane produce group #{creds} -g #{group} -n \"#{name} group\"")
+      ios_ids(env).each do |bundle_id|
         # Enable before associating: enabling App Groups clears the groups already selected on the App ID,
         # which yields a profile with an empty application-groups entitlement. Learned the hard way in Earful.
         sh("fastlane produce enable_services #{creds} -a #{bundle_id} --app-group")
