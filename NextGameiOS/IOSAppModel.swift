@@ -11,6 +11,7 @@ final class IOSAppModel {
     private(set) var configuredTeams: [String] = []
     private(set) var lastError: String?
     private(set) var isRefreshing = false
+    private(set) var hasLoadedTeams = false
     private(set) var now = Date.now
 
     @ObservationIgnored private let store = SnapshotStore.shared
@@ -32,6 +33,7 @@ final class IOSAppModel {
     func becameActive() async {
         now = .now
         configuredTeams = await WidgetTeams.configured()
+        hasLoadedTeams = true
         await refresh()
     }
 
@@ -54,6 +56,7 @@ final class IOSAppModel {
 
     func backgroundRefresh() async {
         configuredTeams = await WidgetTeams.configured()
+        hasLoadedTeams = true
         await refresh()
         scheduleBackgroundRefresh()
     }

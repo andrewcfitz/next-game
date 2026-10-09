@@ -6,7 +6,7 @@ struct TeamsView: View {
     var body: some View {
         NavigationStack {
             List {
-                if model.configuredTeams.isEmpty {
+                if model.hasLoadedTeams && model.configuredTeams.isEmpty {
                     Section {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Add a Next Game widget").font(.headline)
@@ -29,7 +29,7 @@ struct TeamsView: View {
                 }
             }
             .navigationTitle("Next Game")
-            .refreshable { await model.refresh() }
+            .refreshable { await model.becameActive() }
         }
     }
 }
