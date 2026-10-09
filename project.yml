@@ -1,0 +1,86 @@
+name: NextGame
+options:
+  deploymentTarget:
+    macOS: "15.0"
+    iOS: "18.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Config/Dev.xcconfig
+  Release: Config/Prod.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+schemes:
+  NextGame:
+    build:
+      targets:
+        NextGame: all
+        NextGameTests: [test]
+    test:
+      targets:
+        - NextGameTests
+targets:
+  NextGame:
+    type: application
+    platform: macOS
+    sources:
+      - NextGame
+      - Shared
+    dependencies:
+      - target: NextGameWidgetExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: biz.fitz.NextGame
+        DEVELOPMENT_TEAM: 8353VT99LA
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: NextGame/NextGame.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_PREVIEWS: YES
+        COMBINE_HIDPI_IMAGES: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Next Game
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.sports
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_EMIT_LOC_STRINGS: YES
+  NextGameWidgetExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - NextGameWidget
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: biz.fitz.NextGame.Widget
+        DEVELOPMENT_TEAM: 8353VT99LA
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: NextGameWidget/NextGameWidget.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: NextGameWidget/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: Next Game
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: WidgetBackground
+        SKIP_INSTALL: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+  NextGameTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - NextGameTests
+      - Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: biz.fitz.NextGameTests
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_EMIT_LOC_STRINGS: NO

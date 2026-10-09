@@ -1,0 +1,4 @@
+// Release builds, including TestFlight.
+NEXTGAME_IOS_BUNDLE_ID = biz.fitz.NextGame
+NEXTGAME_APP_GROUP = group.biz.fitz.NextGame
+NEXTGAME_DISPLAY_NAME = Next Game

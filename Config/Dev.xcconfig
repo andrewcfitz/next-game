@@ -1,0 +1,4 @@
+// Debug builds. Lets a development build sit next to the TestFlight one on a phone.
+NEXTGAME_IOS_BUNDLE_ID = biz.fitz.NextGame.dev
+NEXTGAME_APP_GROUP = group.biz.fitz.NextGame.dev
+NEXTGAME_DISPLAY_NAME = Next Game Dev

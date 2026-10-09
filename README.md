@@ -6,7 +6,9 @@ Data comes from [nflverse](https://github.com/nflverse/nfldata) (`games.csv` and
 
 ## Development
 
-1. Open `NextGame.xcodeproj` (macOS 15+, Xcode 16+).
+`project.yml` is the source of truth; `NextGame.xcodeproj` is generated and gitignored.
+
+1. Run `mise install`, then `Scripts/generate.sh` (any Fastlane lane does this too) and open `NextGame.xcodeproj` (macOS 15+, Xcode 16+).
 2. For both the **NextGame** and **NextGameWidgetExtension** targets, choose your team under Signing & Capabilities. Both use the App Group `$(TeamIdentifierPrefix)biz.fitz.NextGame`.
 3. Run the **NextGame** scheme, then add the widget: *Edit Widgets > Next Game*, and pick a team in the widget's edit sheet.
 
