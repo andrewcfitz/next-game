@@ -57,6 +57,34 @@ enum GameFormatting {
         }
     }
 
+    static func inline(_ state: TeamState, team: String, now: Date,
+                       calendar: Calendar = .current, locale: Locale = .current) -> String {
+        switch state {
+        case let .upcoming(next, _, _):
+            return "\(team) \(matchup(next, for: team)) · \(kickoff(next.kickoff, now: now, calendar: calendar, locale: locale))"
+        case let .inProgress(game):
+            return game.hasScore ? liveScore(game, for: team) : "\(team) \(matchup(game, for: team)) · In progress"
+        case .offseason:
+            return "\(team) · Offseason"
+        }
+    }
+
+    static func rectangularLines(_ state: TeamState, team: String, now: Date,
+                                 calendar: Calendar = .current, locale: Locale = .current) -> [String] {
+        switch state {
+        case let .upcoming(next, last, isBye):
+            let when = kickoff(next.kickoff, now: now, calendar: calendar, locale: locale)
+            let untilKickoff = countdown(to: next.kickoff, now: now, calendar: calendar) + (isBye ? " · bye week" : "")
+            return ["\(matchup(next, for: team)) · \(when)", untilKickoff] + [last.map { result($0, for: team) }].compactMap { $0 }
+        case let .inProgress(game):
+            let header = "\(team) \(matchup(game, for: team))"
+            if game.hasScore { return [header, liveScore(game, for: team)] }
+            return [header, "In progress", kickoff(game.kickoff, now: now, calendar: calendar, locale: locale)]
+        case let .offseason(last):
+            return [team, "Offseason"] + [last.map { result($0, for: team) }].compactMap { $0 }
+        }
+    }
+
     private static func dayDistance(from now: Date, to date: Date, calendar: Calendar) -> Int {
         calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
     }
