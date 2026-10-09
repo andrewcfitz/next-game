@@ -10,7 +10,7 @@ struct NextGameiOSApp: App {
             TeamsView()
                 .environment(model)
         }
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase, initial: true) { _, phase in
             switch phase {
             case .active: Task { await model.becameActive() }
             case .background: model.scheduleBackgroundRefresh()

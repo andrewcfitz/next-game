@@ -9,13 +9,16 @@ enum WidgetTeams {
     }
 }
 
-/// The refresh both apps run: teams weekly, logos, then the schedule.
+/// The refresh both apps run: the schedule first so the status line settles quickly, then teams weekly and logos.
 struct AppRefresh {
     var refresher = ScheduleRefresher()
     var store = SnapshotStore.shared
     var logos = LogoCache.shared
 
     func run(configuredTeams: Set<String>) async -> RefreshOutcome {
+        let previous = store.schedule?.games
+        let outcome = await refresher.refreshSchedule()
+
         var logosChanged = false
         if let fresh = await refresher.refreshTeamsIfStale(maxAge: RefreshPolicy.teamsMaxAge) {
             logosChanged = await logos.update(fresh, force: true)
@@ -23,8 +26,6 @@ struct AppRefresh {
             logosChanged = await logos.update(teams)
         }
 
-        let previous = store.schedule?.games
-        let outcome = await refresher.refreshSchedule()
         // .changed fires for any game in the season; reloading on each would burn the widget budget.
         if logosChanged || (outcome == .changed
             && RefreshPolicy.relevantGamesChanged(old: previous, new: store.schedule?.games, teams: configuredTeams)) {
