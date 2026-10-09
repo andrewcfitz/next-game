@@ -14,7 +14,6 @@ final class AppModel {
     private(set) var now = Date.now
 
     @ObservationIgnored private let store = SnapshotStore.shared
-    @ObservationIgnored private let refresher = ScheduleRefresher()
     @ObservationIgnored private var lastAttempt: Date?
     @ObservationIgnored private var loop: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
@@ -31,18 +30,12 @@ final class AppModel {
     }
 
     var statusLine: String {
-        let fetchedAt = schedule?.fetchedAt
-        if let lastError {
-            guard let fetchedAt else { return lastError }
-            return "\(lastError) · updated \(fetchedAt.formatted(.relative(presentation: .named)))"
-        }
-        guard let fetchedAt else { return "Not updated yet" }
-        return "Updated \(fetchedAt.formatted(.relative(presentation: .named)))"
+        GameFormatting.statusLine(fetchedAt: schedule?.fetchedAt, lastError: lastError, now: .now)
     }
 
     func menuOpened() async {
         now = .now
-        configuredTeams = await Self.loadConfiguredTeams()
+        configuredTeams = await WidgetTeams.configured()
     }
 
     func refresh() async {
@@ -50,15 +43,7 @@ final class AppModel {
         isRefreshing = true
         defer { isRefreshing = false }
 
-        var logosChanged = false
-        if let fresh = await refresher.refreshTeamsIfStale(maxAge: RefreshPolicy.teamsMaxAge) {
-            logosChanged = await LogoCache.shared.update(fresh, force: true)
-        } else if let teams = store.teams?.teams {
-            logosChanged = await LogoCache.shared.update(teams)
-        }
-
-        let previous = schedule?.games
-        let outcome = await refresher.refreshSchedule()
+        let outcome = await AppRefresh().run(configuredTeams: Set(configuredTeams))
         schedule = store.schedule
         now = .now
         switch outcome {
@@ -66,11 +51,6 @@ final class AppModel {
             lastError = nil
             lastAttempt = .now
         case let .failed(message): lastError = message
-        }
-        // .changed fires for any game in the season; reloading on each would burn the widget budget.
-        if logosChanged || (outcome == .changed
-            && RefreshPolicy.relevantGamesChanged(old: previous, new: schedule?.games, teams: Set(configuredTeams))) {
-            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
@@ -80,7 +60,7 @@ final class AppModel {
             while !Task.isCancelled {
                 guard let self else { return }
                 now = .now
-                configuredTeams = await Self.loadConfiguredTeams()
+                configuredTeams = await WidgetTeams.configured()
                 if RefreshPolicy.isDue(lastAttempt: lastAttempt, teams: Set(configuredTeams),
                                        games: schedule?.games ?? [], now: .now) {
                     await refresh()
@@ -96,12 +76,6 @@ final class AppModel {
         ) { [weak self] _ in
             Task { @MainActor in await self?.refresh() }
         })
-    }
-
-    private static func loadConfiguredTeams() async -> [String] {
-        let infos = (try? await WidgetCenter.shared.currentConfigurations()) ?? []
-        let teams = infos.compactMap { $0.widgetConfigurationIntent(of: SelectTeamIntent.self)?.team?.id }
-        return Array(Set(teams)).sorted()
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {

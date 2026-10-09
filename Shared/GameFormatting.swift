@@ -42,6 +42,21 @@ enum GameFormatting {
         return "in \(days)d"
     }
 
+    static func statusLine(fetchedAt: Date?, lastError: String?, now: Date, locale: Locale = .current) -> String {
+        let age = fetchedAt.map { date -> String in
+            let formatter = RelativeDateTimeFormatter()
+            formatter.locale = locale
+            formatter.unitsStyle = .full
+            return formatter.localizedString(for: date, relativeTo: now)
+        }
+        switch (lastError, age) {
+        case let (error?, age?): return "\(error) · updated \(age)"
+        case let (error?, nil): return error
+        case let (nil, age?): return "Updated \(age)"
+        case (nil, nil): return "Not updated yet"
+        }
+    }
+
     private static func dayDistance(from now: Date, to date: Date, calendar: Calendar) -> Int {
         calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
     }

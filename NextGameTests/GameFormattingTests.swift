@@ -63,4 +63,13 @@ struct GameFormattingTests {
         let text = GameFormatting.countdown(to: kickoff, now: iso("2026-09-15T05:00:00Z"), calendar: calendar)
         #expect(text == "in 2h")
     }
+
+    @Test func statusLine() {
+        let now = iso("2026-10-08T18:00:00Z")
+        let fetched = now - 240
+        #expect(GameFormatting.statusLine(fetchedAt: nil, lastError: nil, now: now, locale: locale) == "Not updated yet")
+        #expect(GameFormatting.statusLine(fetchedAt: fetched, lastError: nil, now: now, locale: locale) == "Updated 4 minutes ago")
+        #expect(GameFormatting.statusLine(fetchedAt: nil, lastError: "HTTP 503", now: now, locale: locale) == "HTTP 503")
+        #expect(GameFormatting.statusLine(fetchedAt: fetched, lastError: "HTTP 503", now: now, locale: locale) == "HTTP 503 · updated 4 minutes ago")
+    }
 }
